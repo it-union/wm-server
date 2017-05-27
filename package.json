@@ -1,0 +1,25 @@
+{
+  "name": "ver1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "device.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yellowb0y/itUnion.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yellowb0y/itUnion/issues"
+  },
+  "homepage": "https://github.com/yellowb0y/itUnion#readme",
+  "dependencies": {
+    "mysql": "^2.13.0",
+    "node-static": "^0.7.9"
+  }
+}
