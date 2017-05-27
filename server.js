@@ -43,7 +43,6 @@ global.model = {
 Querys.loadSettings(); /*запрос списка параметров из БД*/
 Querys.loadSockets(); /*запрос параметров сервера из БД*/
 Querys.loadDevices(); /*запрос списка приборов связи из БД*/
-/*тестовый комент*/
 
 
 
