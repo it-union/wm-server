@@ -4,6 +4,11 @@
 
 var Utilites = {
 
+    sleep: function(ms) {
+            ms += new Date().getTime();
+            while (new Date() < ms){}
+    },
+
     datetime: function () {
       var d = new Date();
       var res =   ('0' + d.getDate()).slice(-2) + '.';

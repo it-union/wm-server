@@ -6,6 +6,7 @@ function WM_Socket()  {
     this.port = 0;
     this.active = 0;
     this.type = '';
+    this.password = '';
     this.server = null;
     this.started = 0;
     this.countclients = 0;
@@ -17,6 +18,7 @@ function WM_Socket()  {
         this.port = item.port;
         this.type = item.typ;
         this.active = item.activ;
+        this.password = item.password;
     };
 }
 

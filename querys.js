@@ -5,9 +5,7 @@ var DB_Querys = {
         model.PoolDB.getConnection(function(error,conn) {
             conn.query('SELECT * FROM settings', function (error, result) {
                 result.forEach(function (item, i, result) {
-                    result.forEach(function (item, i, result) {
                         model.ListSettings[item.name] = item.value;
-                    });
                 });
             });
             conn.release();
@@ -18,11 +16,9 @@ var DB_Querys = {
         model.PoolDB.getConnection(function(error,conn) {
             conn.query('SELECT * FROM sockets', function (error, result) {
                 result.forEach(function (item, i, result) {
-                    result.forEach(function (item, i, result) {
                         var sk = new model.Sockets();
                         sk.oncreate(item);
                         model.ListSockets[item.guid] = sk;
-                    });
                 });
             });
             conn.release();
@@ -37,6 +33,7 @@ var DB_Querys = {
                     dv.oncreate(item);
                     model.ListDevices[item.fnumber] = dv;
                 });
+                var k = 0;
                 for(var i in model.ListSockets) {
                   if(model.ListSockets[i].active > 0) {  /*запуск сокетов*/
                      switch(model.ListSockets[i].type) {
@@ -45,6 +42,7 @@ var DB_Querys = {
                              as.guid = model.ListSockets[i].guid;
                              model.ListSockets[i].server = as;
                              as.open(model.ListSockets[i].port);
+                             k = 1;
                          break;
                          case 'unilink':
                              var as = new model.UniLinkSocket();
@@ -61,6 +59,7 @@ var DB_Querys = {
                      }
                   }
                 }
+                if(k<1) { process.exit(-1); } /*нет системного сокета или неактивен*/
             });
             conn.release();
         })
