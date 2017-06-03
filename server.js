@@ -1,16 +1,9 @@
 var http = require('http');
 var Static = require('node-static');
 
-/*соединение с БД*/
-var mysql = require('mysql');
-var PoolDB  = mysql.createPool({
-    host:     'localhost',
-    user:     'root',
-    password: '',
-    database: 'wm_server'
-});
-
+var DataBase = require('./db').query;
 var Querys = require('./querys');
+
 var SystemSocket = require('./systemsocket');
 var UniLinkSocket = require('./unilinksocket');
 var WebSocket = require('./websocket');
@@ -25,7 +18,7 @@ var ListSettings = []; /*настройки сервера*/
 
 /*глобальные ссылки на объекты*/
 global.model = {
-    PoolDB : PoolDB,
+    DataBase : DataBase,
     SystemSocket : SystemSocket,
     UniLinkSocket : UniLinkSocket,
     WebSocket : WebSocket,
@@ -40,9 +33,8 @@ global.model = {
 };
 /*------------------------------*/
 
-Querys.loadSettings(); /*запрос списка параметров из БД*/
-Querys.loadSockets(); /*запрос параметров сервера из БД*/
-Querys.loadDevices(); /*запрос списка приборов связи из БД*/
+Querys.start(); /**/
+
 
 
 
