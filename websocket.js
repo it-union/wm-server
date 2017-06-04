@@ -41,6 +41,7 @@ class WMWebSocket {
     };
 
     work(ws,message) {
+        clearTimeout(ws.timerChekAuth);
         let cmd = message.split('|');
         let data,s;
         if(cmd.length>1) {

@@ -17,7 +17,7 @@ global.model = {
 };
 /*------------------------------*/
 
-Querys.start((res) => { console.log(res);
+Querys.start((res) => { 
     if(res>0) {
         SocketController.StartSockets();
     }
