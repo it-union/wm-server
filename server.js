@@ -1,39 +1,27 @@
-var http = require('http');
-var Static = require('node-static');
+//const http = require('http');
+//const Static = require('node-static');
 
-var DataBase = require('./db').query;
-var Querys = require('./querys');
+const DataBase = require('./db').query;
+const Querys = require('./querys');
+const SocketController = require('./socketcontroller');
 
-var SystemSocket = require('./systemsocket');
-var UniLinkSocket = require('./unilinksocket');
-var WebSocket = require('./websocket');
-var Devices = require('./device');
-var Sockets = require('./sockets');
-var Utilites = require('./utilites');
-var UniProto = require('./uniproto');
-
-var ListSockets = []; /*массив сокетов*/
-var ListDevices = []; /*список приборов связи*/
-var ListSettings = []; /*настройки сервера*/
+let ListSockets = []; /*массив сокетов*/
+let ListDevices = []; /*список приборов связи*/
+let ListSettings = []; /*настройки сервера*/
 
 /*глобальные ссылки на объекты*/
 global.model = {
-    DataBase : DataBase,
-    SystemSocket : SystemSocket,
-    UniLinkSocket : UniLinkSocket,
-    WebSocket : WebSocket,
-    Devices : Devices,
     ListDevices : ListDevices,
     ListSockets : ListSockets,
-    ListSettings : ListSettings,
-    Querys : Querys,
-    Sockets : Sockets,
-    Utilites : Utilites,
-    UniProto : UniProto
+    ListSettings : ListSettings
 };
 /*------------------------------*/
 
-Querys.start(); /**/
+Querys.start((res) => { console.log(res);
+    if(res>0) {
+        SocketController.StartSockets();
+    }
+}); /**/
 
 
 

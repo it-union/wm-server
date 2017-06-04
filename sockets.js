@@ -1,17 +1,19 @@
-function WM_Socket()  {
+class WMSocket  {
 
-    this.guid = '';
-    this.id = 0;
-    this.ip = '';
-    this.port = 0;
-    this.active = 0;
-    this.type = '';
-    this.password = '';
-    this.server = null;
-    this.started = 0;
-    this.countclients = 0;
+    constructor() {
+        this.guid = '';
+        this.id = 0;
+        this.ip = '';
+        this.port = 0;
+        this.active = 0;
+        this.type = '';
+        this.password = '';
+        this.server = null;
+        this.started = 0;
+        this.countclients = 0;
+    };
 
-    this.oncreate = function(item) {
+    oncreate(item) {
         this.id = item.id;
         this.guid = item.guid;
         this.ip = item.ip;
@@ -20,6 +22,7 @@ function WM_Socket()  {
         this.active = item.activ;
         this.password = item.password;
     };
+
 }
 
-module.exports = WM_Socket;
+module.exports = WMSocket;

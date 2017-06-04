@@ -1,20 +1,22 @@
 
-function WM_Device()  {
+class WMDevice  {
 
-    this.id = 0;
-    this.fnumber = '';
-    this.status = 0;
-    this.active = 0;
-    this.ws = null;
-    this.testgroup = '';
-    this.testregister = '';
-    this.netaddr = '';
-    this.volumeGSM = 0;
-    this.socketowner = ''; /* имя сокета через который присоеденился объект*/
-    this.timeconnected = 0;
-    this.timestatus = 0;
+    constructor() {
+        this.id = 0;
+        this.fnumber = '';
+        this.status = 0;
+        this.active = 0;
+        this.ws = null;
+        this.testgroup = '';
+        this.testregister = '';
+        this.netaddr = '';
+        this.volumeGSM = 0;
+        this.socketowner = ''; /* имя сокета через который присоеденился объект*/
+        this.timeconnected = 0;
+        this.timestatus = 0;
+    };
 
-    this.oncreate = function(item) {
+    oncreate(item)  {
         this.id = item.id;
         this.fnumber = item.fnumber;
         this.status = 0;
@@ -25,10 +27,10 @@ function WM_Device()  {
         this.volumeGSM = 0;
     };
 
-    this.onstatus = function(status) {
+    onstatus(status) {
         this.status = status;
-    }
+    };
 
 }
 
-module.exports = WM_Device;
+module.exports = WMDevice;

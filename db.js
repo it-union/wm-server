@@ -1,4 +1,4 @@
-var pool = require('mysql').createPool({
+const pool = require('mysql').createPool({
     host: 'localhost',
     user: 'root',
     password: '',
