@@ -7,33 +7,36 @@ class WMWebSocket {
     constructor() {
         this.guid = '';
         this.socket = null;
-        this.checkSession = false; /*признак авторизации*/
-        this.session = '';         /*ключ авторизации*/
     };
 
     open(port) {
         this.socket = new SocketServer({port: port});
         this.socket.guid = this.guid;
         this.socket.on('connection', function(ws) {
+
             Utilites.console([0,this.guid,'client connected','','']);
-            Querys.setSessionSocket(this.guid);
             ws.guid = this.guid;
+            ws.session = '';
+            ws.oksession = false; /*признак авторизации*/
+            Querys.setSessionSocket(ws,this.guid);
             ws.timerChekAuth = setTimeout(function() { /*таймер ожидания данных авторизации*/
                 Utilites.console([0,this.guid,'client timeout auth','','']);
-                ws.send('AUTH|[{"session" : "давай досвидания"}]');
                 ws.close();
             }, 10000);
 
             ws.on('close', function() {
                 Utilites.console([0,this.guid,'client disconnected','','']);
             });
+
             ws.on('message', function(message) {
                 Utilites.console([1,this.guid,'','<-',message]);
                 model.ListSockets[this.guid].server.work(ws,message);
             });
+
             ws.on('error', function(event) {
                 Utilites.console([0,this.guid,'connection error','',event.data]);
             });
+
         });
 
         model.ListSockets[this.guid].started = 1;
@@ -43,32 +46,28 @@ class WMWebSocket {
     work(ws,message) {
         clearTimeout(ws.timerChekAuth);
         let cmd = message.split('|');
-        let data,s;
+        let data;
         if(cmd.length>1) {
             try {
                 data = JSON.parse(cmd[1]);
             } catch(e) { }
         }
-        if(!this.checkSession) { /*контроль прохождения авторизации*/
+        if(!ws.oksession) { /*контроль прохождения авторизации*/
 
             switch(cmd[0]) {
                 case 'AUTH': /*авторизация клиента*/
-                    if (this.session == data[0].password) {
-                        this.checkSession = true;
+                    if (ws.session == data[0].password) {
+                        ws.oksession = true;
                         Utilites.console([1, this.guid, 'client auth', '', 'OK']);
                         model.ListSockets[this.guid].server.sendsession(ws);
                     } else {
-                        this.checkSession = false;
-                        s = 'Давай, досвидания';
-                        ws.send('AUTH|[{"session" : "'+s+'"}]');
+                        ws.oksession = false;
                         Utilites.console([1, this.guid, 'client auth', '', 'ERROR']);
                         ws.close();
                     }
                     break;
                 default:
-                    this.checkSession = false;
-                    s = 'Давай, досвидания';
-                    ws.send('AUTH|[{"session" : "'+s+'"}]');
+                    ws.oksession = false;
                     Utilites.console([1, this.guid, 'client auth', '', 'ERROR']);
                     ws.close();
                     break;

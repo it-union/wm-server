@@ -30,7 +30,6 @@ class WMUniLinkSocket {
 
             sock.on('close', function() {
                 Utilites.console([0,TSPServer.guid,'client disconnected','['+sock.device+']','']);
-                model.ListSockets[TSPServer.guid].server.checkSession = false;
                 model.ListSockets[TSPServer.guid].countclients = this._connections;
                 if(sock.device.length>0) {
                     model.ListDevices[sock.device].volumeGSM = 0;
@@ -43,7 +42,6 @@ class WMUniLinkSocket {
 
             sock.on('error', function() {
                 Utilites.console([0,TSPServer.guid,'client error','['+sock.device+']','']);
-                model.ListSockets[TSPServer.guid].server.checkSession = false;
                 if(sock.device.length>0) {
                     model.ListDevices[sock.device].volumeGSM = 0;
                     model.ListDevices[sock.device].status = 0;
@@ -123,11 +121,13 @@ class WMUniLinkSocket {
             case 'STATUSDEVICES':
                 let s = JSON.stringify(model.ListDevices[sock.device],["id","fnumber","status","socketowner","volumeGSM","timestatus"]);
                 s = 'STATUSDEVICES|[' + s + ']';
-                for (var i in model.ListSockets) {
-                    if (model.ListSockets[i].guid != this.guid && sock.device!= undefined && sock.device != '' && model.ListSockets[i].checkSession) {
+                for (let i in model.ListSockets) {
+                    if (model.ListSockets[i].guid != this.guid && sock.device!= undefined && sock.device != '') {
                         model.ListSockets[i].server.socket.clients.forEach (function (ws) {
-                            ws.send(s);
-                            Utilites.console([1,model.ListSockets[i].guid,'['+sock.device+']','->', 'GSM:' + model.ListDevices[sock.device].volumeGSM]);
+                            if(ws.oksession) {
+                                ws.send(s);
+                                Utilites.console([1, model.ListSockets[i].guid, '[' + sock.device + ']', '->', 'GSM:' + model.ListDevices[sock.device].volumeGSM]);
+                            }
                         });
                     }
                 }

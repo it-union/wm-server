@@ -1,9 +1,8 @@
 //const http = require('http');
 //const Static = require('node-static');
 
-const DataBase = require('./db').query;
 const Querys = require('./querys');
-const SocketController = require('./socketcontroller');
+const SocketController = require('./sockets.starter');
 
 let ListSockets = []; /*массив сокетов*/
 let ListDevices = []; /*список приборов связи*/
@@ -17,7 +16,7 @@ global.model = {
 };
 /*------------------------------*/
 
-Querys.start((res) => { 
+Querys.start((res) => {
     if(res>0) {
         SocketController.StartSockets();
     }

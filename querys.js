@@ -27,27 +27,25 @@ const Querys = {
         });
     },
 
-    setSessionUser : function(guid) { /*запрос ключа авторизации*/
+    setSessionUser : function(ws) { /*запрос ключа авторизации*/
         DataBase('SELECT * FROM user_session', []).then(function (res) {
             res.forEach(function (item, i, res) {
-                model.ListSockets[guid].server.session = item.session;
+                ws.session = item.session;
             });
         })
     },
 
-    setSessionSocket : function(guid) { /*запрос ключа авторизации*/
+    setSessionSocket : function(ws,guid) { /*запрос ключа авторизации*/
         DataBase('SELECT * FROM sockets WHERE guid=?', [guid]).then(function (res) {
             res.forEach(function (item, i, res) {
-                model.ListSockets[guid].server.session = item.session;
+                ws.session = item.session;
             });
         })
     },
 
     addSessionSocket : function(record) { /*запись сесиии авторизовавшегося сокета*/
         DataBase('INSERT INTO seckets_session SET ?', [record]).then(function (res) {
-           /* res.forEach(function (item, i, res) {
-                model.ListSockets[guid].server.session = item.session;
-            });*/
+
         })
     }
 

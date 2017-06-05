@@ -1,6 +1,6 @@
-const WMSystemSocket = require('./systemsocket');
-const WMWebSocket = require('./websocket');
-const WMUniLinkSocket = require('./unilinksocket');
+const WMSystemSocket = require('./system.socket');
+const WMWebSocket = require('./web.socket');
+const WMUniLinkSocket = require('./unilink.socket');
 
 exports.StartSockets = function() {
 
@@ -32,4 +32,6 @@ exports.StartSockets = function() {
       }
       if(k<1) { process.exit(-1); } /*нет системного сокета или неактивен*/
 
-}
+};
+
+

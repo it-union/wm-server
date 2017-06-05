@@ -7,8 +7,6 @@ class WMSystemSocket {
 
     constructor() {
         this.guid = '';
-        this.checkSession = false; /*признак авторизации*/
-        this.session = '';         /*ключ авторизации*/
         this.socket = null;
     };
 
@@ -16,22 +14,33 @@ class WMSystemSocket {
         this.socket = new SocketServer({port: port});
         this.socket.guid = this.guid;
         this.socket.on('connection', function(ws) {
+
             Utilites.console([0,this.guid,'client connected','','']);
-            Querys.setSessionUser(this.guid);
-            model.ListSockets[this.guid].countclients = this.clients.size;
             ws.guid = this.guid;
+            ws.session = '';
+            ws.oksession = false; /*признак авторизации*/
+            Querys.setSessionUser(ws);
+            model.ListSockets[this.guid].countclients = this.clients.size;
+
+            ws.timerChekAuth = setTimeout(function() { /*таймер ожидания данных авторизации*/
+                Utilites.console([0,this.guid,'client timeout auth','','']);
+                ws.close();
+            }, 10000);
+
             ws.on('close', function() {
                 Utilites.console([0,this.guid,'client disconnected','','']);
-                model.ListSockets[this.guid].server.checkSession = false;
                 model.ListSockets[this.guid].countclients = model.ListSockets[this.guid].server.socket.clients.size;
             });
+
             ws.on('message', function(message) {
                 Utilites.console([1,this.guid,'','<-',message]);
                 model.ListSockets[this.guid].server.work(ws,message);
             });
+
             ws.on('error', function(event) {
                 Utilites.console([0,this.guid,'connection error','',event.data]);
             });
+
         });
 
         model.ListSockets[this.guid].started = 1;
@@ -39,6 +48,7 @@ class WMSystemSocket {
     };
 
     work(ws,message) {
+        clearTimeout(ws.timerChekAuth);
         let cmd = message.split('|');
         let data;
         if(cmd.length>1) {
@@ -46,21 +56,21 @@ class WMSystemSocket {
                 data = JSON.parse(cmd[1]);
             } catch(e) { }
         }
-        if(!this.checkSession) { /*контроль прохождения авторизации*/
+        if(!ws.oksession) { /*контроль прохождения авторизации*/
 
             switch(cmd[0]) {
                 case 'AUTH': /*авторизация клиента*/
-                    if (this.session == data[0].session) {
-                        this.checkSession = true;
+                    if (ws.session == data[0].session) {
+                        ws.oksession = true;
                         Utilites.console([1, this.guid, 'client auth', '', 'OK']);
                     } else {
-                        this.checkSession = false;
+                        ws.oksession = false;
                         Utilites.console([1, this.guid, 'client auth', '', 'ERROR']);
                         ws.close();
                     }
                 break;
                 default:
-                    this.checkSession = false;
+                    ws.oksession = false;
                     Utilites.console([1, this.guid, 'client auth', '', 'ERROR']);
                     ws.close();
                 break;
@@ -92,7 +102,7 @@ class WMSystemSocket {
                     if (model.ListDevices[data[0].fnumber].id != undefined && model.ListDevices[data[0].fnumber].active > 0) {
                         let pk = UniProto.testdata(model.ListDevices[data[0].fnumber]);
                         model.ListSockets[data[0].socketowner].server.senddata(model.ListDevices[data[0].fnumber].sock, pk, data[0].timeout, 0);
-                        Utilites.console([1, data[0].fnumber, '[' + data[0].socketowner + ']', '->', pk.toUpperCase()]);
+                        Utilites.console([1, data[0].socketowner, '[' + data[0].fnumber + ']', '->', pk.toUpperCase()]);
                         model.ListDevices[data[0].fnumber].status = 2;
                         model.ListSockets[data[0].socketowner].server.alertclients('STATUSDEVICES', model.ListDevices[data[0].fnumber].sock);
                     }
