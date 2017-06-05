@@ -1,4 +1,5 @@
 const DataBase = require('./db').query;
+const Utilites = require('./utilites');
 const WMDevices = require('./device');
 const WMSockets = require('./sockets');
 
@@ -27,27 +28,36 @@ const Querys = {
         });
     },
 
-    setSessionUser : function(ws) { /*запрос ключа авторизации*/
+    setSessionUser : function(session,callback) { /*проверка ключа авторизации*/
         DataBase('SELECT * FROM user_session', []).then(function (res) {
+            let pass = false;
             res.forEach(function (item, i, res) {
-                ws.session = item.session;
+                if(session == item.session) { pass = true; }
             });
+            callback(pass);
         })
     },
 
-    setSessionSocket : function(ws,guid) { /*запрос ключа авторизации*/
+    addSessionSocket : function(guid,password,callback) { /*запрос ключа авторизации*/
         DataBase('SELECT * FROM sockets WHERE guid=?', [guid]).then(function (res) {
+            let pass = false;
             res.forEach(function (item, i, res) {
-                ws.session = item.session;
+                if(password == item.password) { pass = true; }
             });
-        })
-    },
 
-    addSessionSocket : function(record) { /*запись сесиии авторизовавшегося сокета*/
-        DataBase('INSERT INTO seckets_session SET ?', [record]).then(function (res) {
-
+            if(pass) {
+                let s = Utilites.newsession(Utilites.datetime()); /*генератор сессии MD5*/
+                let record = [guid, s];
+                callback(s);
+                return DataBase('INSERT INTO sockets_session (socket,session) VALUES (?,?)', record);
+            } else {
+                callback('');  /*не совпал пароль - поэтому сессия пустая*/
+            }
+        }).then(function(res) {
+            /*сохранение сессии  в БД*/
         })
     }
+
 
 };
 

@@ -18,7 +18,6 @@ class WMWebSocket {
             ws.guid = this.guid;
             ws.session = '';
             ws.oksession = false; /*признак авторизации*/
-            Querys.setSessionSocket(ws,this.guid);
             ws.timerChekAuth = setTimeout(function() { /*таймер ожидания данных авторизации*/
                 Utilites.console([0,this.guid,'client timeout auth','','']);
                 ws.close();
@@ -47,44 +46,42 @@ class WMWebSocket {
         clearTimeout(ws.timerChekAuth);
         let cmd = message.split('|');
         let data;
-        if(cmd.length>1) {
-            try {
-                data = JSON.parse(cmd[1]);
-            } catch(e) { }
-        }
-        if(!ws.oksession) { /*контроль прохождения авторизации*/
+        let s;
+        try {
+            data = JSON.parse(cmd[1]);
 
-            switch(cmd[0]) {
-                case 'AUTH': /*авторизация клиента*/
-                    if (ws.session == data[0].password) {
-                        ws.oksession = true;
-                        Utilites.console([1, this.guid, 'client auth', '', 'OK']);
-                        model.ListSockets[this.guid].server.sendsession(ws);
-                    } else {
+            if(!ws.oksession) { /*контроль прохождения авторизации*/
+                switch(cmd[0]) {
+                    case 'AUTH': /*авторизация клиента*/
+                        Querys.addSessionSocket(this.guid, data.password,(res) => {  /*генерация сессии и отправка клиенту*/
+                            if(res!='') {
+                                ws.oksession = true;
+                                Utilites.console([1, this.guid, 'client auth', '', 'OK']);
+                                ws.send('SESSION|[{"session" : "'+res+'"}]');
+                                Utilites.console([1, this.guid, 'SESSION', '->', '[' + res + ']']);
+                            } else {  /*ошибка авторизации*/
+                                ws.oksession = false;
+                                Utilites.console([1, this.guid, 'client auth', '', 'ERROR']);
+                                ws.send('AUTH|[{"result" : "access denied"}]');
+                                ws.close();
+                            }
+                        });
+                        break;
+                    default:
                         ws.oksession = false;
                         Utilites.console([1, this.guid, 'client auth', '', 'ERROR']);
                         ws.close();
-                    }
-                    break;
-                default:
-                    ws.oksession = false;
-                    Utilites.console([1, this.guid, 'client auth', '', 'ERROR']);
-                    ws.close();
-                    break;
+                        break;
+                }
+            } else {
+
+
             }
 
-        } else {
-
-
+        } catch(e) {
+            ws.send('ERROR|[{"result" : "data format error"}]');
         }
-    };
 
-    sendsession(ws) { /*генерация сессии и отправка клиенту*/
-        let s = Utilites.newsession(Utilites.datetime());
-        let record= { socket: this.guid, session: s };
-        Querys.addSessionSocket(record);
-        ws.send('SESSION|[{"session" : "'+s+'}"]');
-        Utilites.console([1, this.guid, 'SESSION', '->', '[' + s + ']']);
     };
 
 }

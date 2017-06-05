@@ -3,7 +3,14 @@ const Utilites = {
 
     newsession: function(data) {
         let md5 = require("nodejs-md5");
-        return md5.toString(data);
+        let res;
+        md5.string.quiet(data, function (err, md5) {
+            if (err) { }
+            else {
+                res = md5;
+            }
+        });
+        return res;
     },
 
     sleep: function(ms) {
