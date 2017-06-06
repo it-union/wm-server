@@ -120,11 +120,11 @@ class WMUniLinkSocket {
         switch(type) {
             case 'STATUSDEVICES':
                 let s = JSON.stringify(model.ListDevices[sock.device],["id","fnumber","status","socketowner","volumeGSM","timestatus"]);
-                s = 'STATUSDEVICES|[' + s + ']';
+                s = '{ "command" : "STATUSDEVICES", "items" : [' + s + ']}';
                 for (let i in model.ListSockets) {
                     if (model.ListSockets[i].guid != this.guid && sock.device!= undefined && sock.device != '') {
                         model.ListSockets[i].server.socket.clients.forEach (function (ws) {
-                            if(ws.oksession) {
+                            if(ws.oksession && Utilites.findElement(ws.devices,sock.device)) {
                                 ws.send(s);
                                 Utilites.console([1, model.ListSockets[i].guid, '[' + sock.device + ']', '->', 'GSM:' + model.ListDevices[sock.device].volumeGSM]);
                             }

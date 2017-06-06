@@ -1,6 +1,16 @@
 
 const Utilites = {
 
+    findElement: function(mass,element) {
+        let res = false;
+        mass.forEach(function(item, i, mass) {
+            if(item == element) {
+                res = true;
+            }
+        });
+        return res;
+    },
+
     newsession: function(data) {
         let md5 = require("nodejs-md5");
         let res;

@@ -18,6 +18,7 @@ class WMWebSocket {
             ws.guid = this.guid;
             ws.session = '';
             ws.oksession = false; /*признак авторизации*/
+            ws.devices = [];      /*список device принадлежащих клиенту*/
             ws.timerChekAuth = setTimeout(function() { /*таймер ожидания данных авторизации*/
                 Utilites.console([0,this.guid,'client timeout auth','','']);
                 ws.close();
@@ -44,25 +45,24 @@ class WMWebSocket {
 
     work(ws,message) {
         clearTimeout(ws.timerChekAuth);
-        let cmd = message.split('|');
-        let data;
+        let data,mass;
         let s;
         try {
-            data = JSON.parse(cmd[1]);
+            data = JSON.parse(message);
 
             if(!ws.oksession) { /*контроль прохождения авторизации*/
-                switch(cmd[0]) {
+                switch(data.command) {
                     case 'AUTH': /*авторизация клиента*/
                         Querys.addSessionSocket(this.guid, data.password,(res) => {  /*генерация сессии и отправка клиенту*/
                             if(res!='') {
                                 ws.oksession = true;
                                 Utilites.console([1, this.guid, 'client auth', '', 'OK']);
-                                ws.send('SESSION|[{"session" : "'+res+'"}]');
+                                ws.send('{"command" : "SESSION", "session" : "'+res+'"}');
                                 Utilites.console([1, this.guid, 'SESSION', '->', '[' + res + ']']);
                             } else {  /*ошибка авторизации*/
                                 ws.oksession = false;
                                 Utilites.console([1, this.guid, 'client auth', '', 'ERROR']);
-                                ws.send('AUTH|[{"result" : "access denied"}]');
+                                ws.send('{"command" : "AUTH", "result" : "access denied"}');
                                 ws.close();
                             }
                         });
@@ -75,11 +75,36 @@ class WMWebSocket {
                 }
             } else {
 
+                switch (data.command) {
+                    case 'STATUSDEVICES': /*запрос списка статусов приборов связи*/
+                        s = '';
+                        j = 0;
+                        for (let i in model.ListDevices) {
+                            if (s.length > 0) { s += ','; }
+                            if(Utilites.findElement(ws.devices,model.ListDevices[i].fnumber)) {
+                                s += JSON.stringify(model.ListDevices[i], ["id", "fnumber", "status"]);
+                                j++;
+                            }
+                        }
+                        s = '{ "command" : "STATUSDEVICES", "items" : [' + s + ']}';
+                        ws.send(s);
+                        Utilites.console([1, this.guid, 'STATUSDEVICES', '->', '[' + j + ']']);
+                        break;
+                    case 'MYDEVICES':
+                        ws.length = 0;
+                        mass = data.items;
+                        mass.forEach(function(item, i, mass) {
+                          ws.devices.push(item.fnumber);
+                        });
+                        ws.send('{"command" : "MYDEVICES", "result" : "OK"}');
+                        break;
+                }
+
 
             }
 
         } catch(e) {
-            ws.send('ERROR|[{"result" : "data format error"}]');
+            ws.send('{"command": "'+data.command+'", "result" : "data format error"}');
         }
 
     };
