@@ -14,6 +14,7 @@ class WMDevice  {
         this.socketowner = ''; /* имя сокета через который присоеденился объект*/
         this.timeconnected = 0;
         this.timestatus = 0;
+        this.resivedata = '';
     };
 
     oncreate(item)  {

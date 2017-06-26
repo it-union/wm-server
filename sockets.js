@@ -2,7 +2,7 @@ class WMSocket  {
 
     constructor() {
         this.guid = '';
-        this.id = 0;
+        this.dbid = 0;
         this.ip = '';
         this.port = 0;
         this.active = 0;
@@ -14,7 +14,7 @@ class WMSocket  {
     };
 
     oncreate(item) {
-        this.id = item.id;
+        this.dbid = item.id;
         this.guid = item.guid;
         this.ip = item.ip;
         this.port = item.port;

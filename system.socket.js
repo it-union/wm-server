@@ -8,22 +8,25 @@ class WMSystemSocket {
     constructor() {
         this.guid = '';
         this.socket = null;
+        this.id = Utilites.generateSocketID(model.ListSockets); /*ID сокета*/
     };
 
     open(port) {
         this.socket = new SocketServer({port: port});
         this.socket.guid = this.guid;
+        this.socket.id = this.id;
         this.socket.on('connection', function(ws) {
 
             Utilites.console([0,this.guid,'client connected','','']);
             ws.guid = this.guid;
+            ws.id = Utilites.generateClientID(model.ListSockets[this.guid].server.socket.clients); /*ID клиента*/
             ws.session = '';
             ws.oksession = false; /*признак авторизации*/
             ws.devices = [];      /*список device принадлежащих клиенту*/
             model.ListSockets[this.guid].countclients = this.clients.size;
 
             ws.timerChekAuth = setTimeout(function() { /*таймер ожидания данных авторизации*/
-                Utilites.console([0,this.guid,'client timeout auth','','']);
+                Utilites.console([0,ws.guid,'client timeout auth','','']);
                 ws.close();
             }, 10000);
 
@@ -86,8 +89,10 @@ class WMSystemSocket {
                         s = '';
                         j = 0;
                         for (let i in model.ListDevices) {
-                            if (s.length > 0) { s += ','; }
-                            if(Utilites.findElement(ws.devices,model.ListDevices[i].fnumber)) {
+                            if (s.length > 0) {
+                                s += ',';
+                            }
+                            if (Utilites.findElement(ws.devices, model.ListDevices[i].fnumber)) {
                                 s += JSON.stringify(model.ListDevices[i], ["id", "fnumber", "status", "socketowner"]);
                                 j++;
                             }
@@ -96,13 +101,13 @@ class WMSystemSocket {
                         ws.send(s);
                         Utilites.console([1, this.guid, 'STATUSDEVICES', '->', '[' + j + ']']);
                         break;
-                    case 'TESTDEVICE' :
+                    case 'TESTDEVICE':
                         if (model.ListDevices[data.fnumber].id != undefined && model.ListDevices[data.fnumber].active > 0) {
-                            let pk = UniProto.testdata(model.ListDevices[data.fnumber]);
-                            model.ListSockets[data.socketowner].server.senddata(model.ListDevices[data.fnumber].sock, pk, data.timeout, 0);
-                            Utilites.console([1, data.socketowner, '[' + data.fnumber + ']', '->', pk.toUpperCase()]);
-                            model.ListDevices[data.fnumber].status = 2;
-                            model.ListSockets[data.socketowner].server.alertclients('STATUSDEVICES', model.ListDevices[data.fnumber].sock);
+                           let pk = UniProto.testdata(model.ListDevices[data.fnumber]);
+                           model.ListSockets[data.socketowner].server.senddata(model.ListDevices[data.fnumber].sock, pk, data.timeout, 0);
+                           Utilites.console([1, data.socketowner, '[' + data.fnumber + ']', '->', pk.toUpperCase()]);
+                           model.ListDevices[data.fnumber].status = 2;
+                           model.ListSockets[data.socketowner].server.alertclients('STATUSDEVICES', model.ListDevices[data.fnumber].sock);
                         }
                         break;
                     case 'CLOSEDEVICE': /*закрытие соединения с клиентом*/
@@ -124,19 +129,32 @@ class WMSystemSocket {
                         Utilites.console([1, this.guid, 'STATUSSOCKETS', '->', '[' + j + ']']);
                         break;
                     case 'MYDEVICES':
-                        ws.length = 0;
+                        ws.devices.length = 0;
                         mass = data.items;
                         mass.forEach(function(item, i, mass) {
                             ws.devices.push(item.fnumber);
                         });
                         ws.send('{"command" : "MYDEVICES", "result" : "OK"}');
+                        Utilites.console([1, this.guid, 'MYDEVICES', '->', '[OK '+ws.devices.length+']']);
+                        break;
+
+                    case 'TRANSIT':
+                        for (let i = 0; i < data.items.length; i++) {
+                            if (model.ListDevices[data.items[i].fnumber].id != undefined && model.ListDevices[data.items[i].fnumber].active > 0) {
+                                let pk = UniProto.transitdata(model.ListDevices[data.items[i].fnumber], data.items[i].port, this.id, ws.id, data.items[i].data);
+                                model.ListSockets[data.items[i].socketowner].server.senddata(model.ListDevices[data.items[i].fnumber].sock, pk, data.items[i].timeout, data.items[i].event);
+                                Utilites.console([1, data.items[i].socketowner, '[' + data.items[i].fnumber + ']', '->', pk.toUpperCase()]);
+                                model.ListDevices[data.items[i].fnumber].status = 2;
+                                model.ListSockets[data.items[i].socketowner].server.alertclients('STATUSDEVICES', model.ListDevices[data.items[i].fnumber].sock);
+                            }
+                        }
                         break;
                 }
 
             }
 
         } catch(e) {
-            ws.send('{"command": "'+data.command+'", "result" : "data format error"}');
+            ws.send('{"result" : "data format error"}');
         }
 
 

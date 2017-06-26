@@ -17,61 +17,86 @@ const WM_UniProto = {
    },
 
    parser : function(data) {
+      let res = [];
+      res.result = 0;
       if(data.length>12) {
-          let header_ = data[0];
-          if(this.check_header(header_)) {
+          res.header = data[0];
+          if(this.check_header(res.header)) {
               if(this.check_crc(data)) {
-                  let len_ = data[1] + data[2];
-                  let addr_ = data[3] + data[4];
-                  let group_ = data[5];
-                  let master_ = data[6];
-                  let temp_ = data[7];
-                  let socket_ = data[8];
-                  let id_ = data[9] + data[10];
+                  res.len = data[1] + data[2];
+                  res.addr = data[3] + data[4];
+                  res.group = data[5];
+                  res.master = data[6];
+                  res.temp1 = data[7];
+                  res.temp2 = data[8];
+                  res.idsocket = data[9];
+                  res.idclient = data[10];
 
                   let systemgroup = -1;
-                  switch(group_) {
+                  switch(res.group) {
                       case '11' : systemgroup = 0; break;
                       case '12' : systemgroup = 1; break;
                       case '13' : systemgroup = 2; break;
                       case '14' : systemgroup = 3; break;
                   };
-                  let _group = '';
-                  let _command = '';
-                  let _addr = '';
-                  let _len = '';
-                  let _data = '';
+                  res._group = '';
+                  res._command = '';
+                  res._addr = '';
+                  res._len = '';
+                  res._data = '';
                   if(systemgroup<0) { /*данные от интерфейсов*/
                     for(i=11; i<data.length-2; i++) {
-                       _data += data[i];
+                        res._data += data[i];
                     }
                   } else {            /*системные данные*/
-                    _group = data[11];
-                    _command = data[12];
-                    _addr = data[13]+data[14];
-                    _len = data[15]+data[16];
-                    _data = '';
-                    for(i=17; i<data.length; i++) {
-                       _data += data[i];
-                    }
+                      res._group = data[11];
+                      res._command = data[12];
+                      res._addr = data[13]+data[14];
+                      res._len = data[15]+data[16];
+                      res._data = '';
+                      for(i=17; i<data.length; i++) {
+                        res._data += data[i];
+                      }
                   }
-                  return [0,header_,len_,addr_,group_,master_,temp_,socket_,id_,_group,_command,_addr,_len,_data];
+                  res.result = 0;
 
               } else {
-                return [3];
+                res.result = 3;
               }
           } else {
-            return [2];
+              res.result = 2;
           }
       } else {
-         return [1];
+          res.result = 1;
       }
-
+      return res;
    },
 
    testdata: function(device) {
      let pk = '';
-     pk = '400013' + '00' + ('0' + device.netaddr).slice(-2) + device.testgroup + 'FFFFFFFF00' + device.testgroup + '03' + device.testregister + '0002';
+     pk =  '40';
+     pk += '0013';
+     pk += Utilites.sprintf("%04X",device.netaddr);
+     pk += device.testgroup;
+     pk += 'FFFFFFFF00';
+     pk += device.testgroup;
+     pk += '03' + device.testregister + '0002';
+     return pk;
+   },
+
+   transitdata: function(device,group,socketid,wsid,data) {
+     let pk = '';
+     pk =  '40';
+     pk += 'LLLL';
+     pk += Utilites.sprintf("%04X",device.netaddr);
+     pk += Utilites.sprintf("%02X",group);
+     pk += 'FFFFFF';
+     pk += socketid;
+     pk += wsid;
+     pk += Utilites.sprintf("%02X",group);
+     pk += data;
+     let len = (pk.length/2)+2;
+     pk = pk.replace('LLLL',Utilites.sprintf("%04X",len));
      return pk;
    },
 
