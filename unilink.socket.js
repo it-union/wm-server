@@ -15,8 +15,9 @@ class WMUniLinkSocket {
         TSPServer.createServer(function(sock) {
             sock.resivedata = [];
             sock.device = '';
-            sock.timerChekConnection = null;
-            sock.timerWaitResponse = null;
+            sock.timerChekConnection = null; /*таймер ожидания авторизации*/
+            sock.timerWaitResponse = null; /*таймер ожидания ответа*/
+            sock.timerBackTest = null; /*таймер обратного теста*/
             Utilites.console([0,TSPServer.guid,'client connected','','']);
             model.ListSockets[TSPServer.guid].countclients = this._connections;
             sock.timerChekConnection = setTimeout(function() { /*таймер ожидания данных авторизации*/
@@ -61,9 +62,18 @@ class WMUniLinkSocket {
     work(sock,data) {
         clearTimeout(sock.timerChekConnection);
         clearTimeout(sock.timerWaitResponse);
+        clearTimeout(sock.timerBackTest);
+
         sock.resivedata = Utilites.arrayDecToHex(data);
         let res;
         if(sock.device.length>0) { /*существующее подключение*/
+
+            sock.timerBackTest = setTimeout(function() { /*таймер обратного теста*/
+                let pk = UniProto.testdata(model.ListDevices[sock.device]);
+                model.ListSockets[TSPServer.guid].server.senddata(sock,pk,20,0);
+                Utilites.console([1,TSPServer.guid,'['+sock.device+']','->',pk.toUpperCase()]);
+            }, model.ListDevices[sock.device].backtest * 1000);
+
             res = UniProto.parser(sock.resivedata);
             if(res.result<1) { /*нет ошибок*/
 
@@ -101,7 +111,7 @@ class WMUniLinkSocket {
                   model.ListDevices[fn].sock = sock;
                   model.ListDevices[fn].socketowner = this.guid;
                   model.ListDevices[fn].timestatus = Utilites.datetime();
-                  var pk = UniProto.testdata(model.ListDevices[fn]);
+                  let pk = UniProto.testdata(model.ListDevices[fn]);
                   model.ListSockets[this.guid].server.senddata(sock,pk,20,0);
                   Utilites.console([1,this.guid,'['+sock.device+']','->',pk.toUpperCase()]);
               } else {

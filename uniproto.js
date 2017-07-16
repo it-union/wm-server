@@ -45,7 +45,7 @@ const WM_UniProto = {
                   res._len = '';
                   res._data = '';
                   if(systemgroup<0) { /*данные от интерфейсов*/
-                    for(i=11; i<data.length-2; i++) {
+                    for(i=11; i<data.length; i++) {
                         res._data += data[i];
                     }
                   } else {            /*системные данные*/

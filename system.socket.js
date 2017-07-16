@@ -140,7 +140,7 @@ class WMSystemSocket {
 
                     case 'TRANSIT':
                         for (let i = 0; i < data.items.length; i++) {
-                            if (model.ListDevices[data.items[i].fnumber].id != undefined && model.ListDevices[data.items[i].fnumber].active > 0) {
+                            if (model.ListDevices[data.items[i].fnumber].id != undefined && model.ListDevices[data.items[i].fnumber].active > 0 && Utilites.findElement(ws.devices,data.items[i].fnumber)) {
                                 let pk = UniProto.transitdata(model.ListDevices[data.items[i].fnumber], data.items[i].port, this.id, ws.id, data.items[i].data);
                                 model.ListSockets[data.items[i].socketowner].server.senddata(model.ListDevices[data.items[i].fnumber].sock, pk, data.items[i].timeout, data.items[i].event);
                                 Utilites.console([1, data.items[i].socketowner, '[' + data.items[i].fnumber + ']', '->', pk.toUpperCase()]);

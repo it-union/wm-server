@@ -15,6 +15,7 @@ class WMDevice  {
         this.timeconnected = 0;
         this.timestatus = 0;
         this.resivedata = '';
+        this.backtest = 360; /*кол-во секунд до обратного теста канала - сервер->клиент*/
     };
 
     oncreate(item)  {
